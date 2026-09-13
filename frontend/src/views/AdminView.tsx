@@ -25,7 +25,7 @@ export const AdminView: React.FC = () => {
     !!localStorage.getItem('admin_token')
   );
   const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
+  const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
   const [activeTab, setActiveTab] = useState<'attempts' | 'questions' | 'assessments'>('attempts');
