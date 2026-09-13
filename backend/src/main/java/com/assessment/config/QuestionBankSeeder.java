@@ -27,7 +27,7 @@ public class QuestionBankSeeder implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         long currentCount = questionRepository.count();
-        if (currentCount >= 50) {
+        if (currentCount >= 60) {
             return;
         }
 
@@ -1362,8 +1362,162 @@ public class Solution {
                 "Explain the architectural trade-offs between microservices and modular monoliths based on real-world systems you have built or observed. Under what conditions is a migration between the two architectures justified?"
         ));
 
+        // Additional Java Questions to guarantee question bank exceeds 60
+        questions.add(createJavaQ(
+                "ARRAYS",
+                "Longest Consecutive Sequence",
+                "Given an unsorted array of integers nums, return the length of the longest consecutive elements sequence in O(n) runtime.",
+                "First line contains integer N.\nSecond line contains N space-separated integers.",
+                "Print a single integer representing length of longest consecutive sequence.",
+                "0 <= N <= 100000\n-1000000000 <= nums[i] <= 1000000000",
+                "",
+                Arrays.asList(
+                        new TestCase(null, "6\n100 4 200 1 3 2", "4", false, 1),
+                        new TestCase(null, "10\n0 3 7 2 5 8 4 6 0 1", "9", false, 1),
+                        new TestCase(null, "0\n", "0", true, 1),
+                        new TestCase(null, "5\n9 1 4 7 3", "1", true, 1)
+                )
+        ));
+
+        questions.add(createJavaQ(
+                "ARRAYS",
+                "Rotate Square Matrix 90 Degrees Clockwise",
+                "You are given an n x n 2D matrix representing an image. Rotate the image by 90 degrees clockwise in-place.",
+                "First line contains integer N.\nNext N lines contain N space-separated integers each.",
+                "Print the rotated N x N matrix with space-separated values per row.",
+                "1 <= N <= 100\n-1000 <= matrix[i][j] <= 1000",
+                "",
+                Arrays.asList(
+                        new TestCase(null, "3\n1 2 3\n4 5 6\n7 8 9", "7 4 1\n8 5 2\n9 6 3", false, 1),
+                        new TestCase(null, "2\n1 2\n3 4", "3 1\n4 2", false, 1),
+                        new TestCase(null, "1\n5", "5", true, 1)
+                )
+        ));
+
+        questions.add(createJavaQ(
+                "STRINGS",
+                "Longest Common Prefix Across Strings",
+                "Write a function to find the longest common prefix string amongst an array of strings. If there is no common prefix, print an empty line.",
+                "First line contains integer N.\nSecond line contains N space-separated strings.",
+                "Print the longest common prefix string.",
+                "1 <= N <= 200\n0 <= strs[i].length <= 200",
+                "",
+                Arrays.asList(
+                        new TestCase(null, "3\nflower flow flight", "fl", false, 1),
+                        new TestCase(null, "3\ndog racecar car", "", false, 1),
+                        new TestCase(null, "1\ninterview", "interview", true, 1)
+                )
+        ));
+
+        questions.add(createJavaQ(
+                "STRINGS",
+                "Count and Say Sequence",
+                "The count-and-say sequence is a sequence of digit strings defined by the recursive formula where term n is the run-length encoding of term n-1.",
+                "First line contains integer N.",
+                "Print the Nth count-and-say term.",
+                "1 <= N <= 30",
+                "",
+                Arrays.asList(
+                        new TestCase(null, "1", "1", false, 1),
+                        new TestCase(null, "4", "1211", false, 1),
+                        new TestCase(null, "5", "111221", true, 1)
+                )
+        ));
+
+        questions.add(createJavaQ(
+                "DATA_STRUCTURES",
+                "Daily Temperatures Monotonic Stack",
+                "Given an array of integers temperatures representing daily temperatures, return an array answer such that answer[i] is the number of days you have to wait after the ith day to get a warmer temperature. If there is no future day for which this is possible, keep answer[i] == 0.",
+                "First line contains integer N.\nSecond line contains N space-separated integers.",
+                "Print N space-separated integers representing wait days.",
+                "1 <= N <= 100000\n30 <= temperatures[i] <= 100",
+                "",
+                Arrays.asList(
+                        new TestCase(null, "8\n73 74 75 71 69 72 76 73", "1 1 4 2 1 1 0 0", false, 1),
+                        new TestCase(null, "4\n30 40 50 60", "1 1 1 0", false, 1),
+                        new TestCase(null, "3\n30 60 90", "1 1 0", true, 1)
+                )
+        ));
+
+        questions.add(createJavaQ(
+                "DATA_STRUCTURES",
+                "Min Stack with Constant Time Minimum",
+                "Design a stack that supports push, pop, top, and retrieving the minimum element in constant time O(1).",
+                "First line contains integer Q (queries).\nNext Q lines contain queries: 'push X', 'pop', 'top', or 'getMin'.",
+                "Print output for each 'top' and 'getMin' query on a new line.",
+                "1 <= Q <= 30000",
+                "",
+                Arrays.asList(
+                        new TestCase(null, "6\npush -2\npush 0\npush -3\ngetMin\npop\ntop", "-3\n0", false, 1),
+                        new TestCase(null, "4\npush 5\npush 2\ngetMin\ntop", "2\n2", true, 1)
+                )
+        ));
+
+        // Additional SQL Questions
+        questions.add(createSqlQ(
+                "JOINS",
+                "Suppliers with Unfulfilled Purchase Orders",
+                "Retrieve all suppliers who have purchase orders that have not yet been marked as fulfilled ('PENDING' or 'PROCESSING'). Return supplier_name, order_id, and order_status ordered by order_id ASC.",
+                "SELECT s.name AS supplier_name, po.id AS order_id, po.status AS order_status FROM suppliers s JOIN purchase_orders po ON s.id = po.supplier_id WHERE po.status <> 'FULFILLED' ORDER BY po.id ASC;",
+                "### Schema\n- `suppliers(id, name, country)`\n- `purchase_orders(id, supplier_id, order_date, status)`",
+                "CREATE TABLE suppliers (id INT PRIMARY KEY, name VARCHAR(100), country VARCHAR(50)); CREATE TABLE purchase_orders (id INT PRIMARY KEY, supplier_id INT, order_date DATE, status VARCHAR(50));",
+                "INSERT INTO suppliers VALUES (1, 'Acme Corp', 'USA'), (2, 'Globex', 'UK'), (3, 'Initech', 'Germany'); INSERT INTO purchase_orders VALUES (101, 1, '2024-01-10', 'PENDING'), (102, 2, '2024-01-11', 'FULFILLED'), (103, 3, '2024-01-12', 'PROCESSING');"
+        ));
+
+        questions.add(createSqlQ(
+                "JOINS",
+                "Student Course Enrollment Records",
+                "Write a query reporting each student's name, enrolled course title, and department. If a student is not enrolled in any course, show 'NOT_ENROLLED' for course title. Order by student name ASC.",
+                "SELECT st.name AS student_name, COALESCE(c.title, 'NOT_ENROLLED') AS course_title, COALESCE(c.department, 'NONE') AS department FROM students st LEFT JOIN enrollments e ON st.id = e.student_id LEFT JOIN courses c ON e.course_id = c.id ORDER BY st.name ASC;",
+                "### Schema\n- `students(id, name, email)`\n- `courses(id, title, department)`\n- `enrollments(student_id, course_id)`",
+                "CREATE TABLE students (id INT PRIMARY KEY, name VARCHAR(100), email VARCHAR(100)); CREATE TABLE courses (id INT PRIMARY KEY, title VARCHAR(100), department VARCHAR(50)); CREATE TABLE enrollments (student_id INT, course_id INT);",
+                "INSERT INTO students VALUES (1, 'David Miller', 'david@test.com'), (2, 'Emma Wilson', 'emma@test.com'), (3, 'Frank Thomas', 'frank@test.com'); INSERT INTO courses VALUES (10, 'Distributed Systems', 'Computer Science'), (20, 'Advanced Algorithms', 'Computer Science'); INSERT INTO enrollments VALUES (1, 10), (1, 20), (2, 10);"
+        ));
+
+        questions.add(createSqlQ(
+                "AGGREGATION",
+                "Monthly Active Customers and Average Order Value",
+                "Calculate total orders, total revenue, and average order value per month for year 2024. Return order_month (YYYY-MM), total_orders, total_revenue, and avg_order_value rounded to 2 decimals. Order by order_month ASC.",
+                "SELECT FORMATDATETIME(order_date, 'yyyy-MM') AS order_month, COUNT(id) AS total_orders, SUM(total_amount) AS total_revenue, ROUND(AVG(total_amount), 2) AS avg_order_value FROM orders GROUP BY FORMATDATETIME(order_date, 'yyyy-MM') ORDER BY order_month ASC;",
+                "### Schema\n- `orders(id, customer_id, order_date, total_amount)`",
+                "CREATE TABLE orders (id INT PRIMARY KEY, customer_id INT, order_date DATE, total_amount DECIMAL(10,2));",
+                "INSERT INTO orders VALUES (1, 10, '2024-01-05', 100.00), (2, 20, '2024-01-18', 200.00), (3, 30, '2024-02-02', 150.00), (4, 40, '2024-02-14', 350.00);"
+        ));
+
+        questions.add(createSqlQ(
+                "WINDOW_FUNCTIONS",
+                "Second Highest Order Value per Customer Account",
+                "For each customer who has at least two orders, find their second highest order amount. Return customer_id, order_id, and total_amount ordered by customer_id ASC.",
+                "WITH RankedOrders AS (SELECT id AS order_id, customer_id, total_amount, DENSE_RANK() OVER (PARTITION BY customer_id ORDER BY total_amount DESC) AS rnk FROM orders) SELECT customer_id, order_id, total_amount FROM RankedOrders WHERE rnk = 2 ORDER BY customer_id ASC;",
+                "### Schema\n- `orders(id, customer_id, order_date, total_amount)`",
+                "CREATE TABLE orders (id INT PRIMARY KEY, customer_id INT, order_date DATE, total_amount DECIMAL(10,2));",
+                "INSERT INTO orders VALUES (1, 101, '2024-01-01', 500.00), (2, 101, '2024-01-02', 800.00), (3, 101, '2024-01-03', 300.00), (4, 102, '2024-01-05', 1000.00), (5, 102, '2024-01-06', 750.00);"
+        ));
+
+        questions.add(createEnglishQ(
+                "Production Incident Postmortem & Root Cause Analysis",
+                "Describe a critical production incident or outage that you investigated. How did you identify the root cause, mitigate the immediate customer impact, and implement long-term preventative fixes?"
+        ));
+
+        questions.add(createEnglishQ(
+                "Engineering Mentorship, Code Quality & Review Culture",
+                "Discuss your approach to conducting code reviews and mentoring peers or junior engineers. How do you balance speed of delivery with architectural rigor and maintainable codebase health?"
+        ));
+
         questionRepository.saveAll(questions);
     }
+
+    private static final String CLEAN_JAVA_STARTER = """
+import java.util.*;
+
+public class Solution {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        // TODO: Read input from System.in and print your solution to System.out
+        
+    }
+}
+""";
 
     private Question createJavaQ(String topic, String title, String desc, String inFormat, String outFormat, String constraints, String starter, List<TestCase> testCases) {
         Question q = new Question();
@@ -1375,7 +1529,7 @@ public class Solution {
         q.setInputFormat(inFormat);
         q.setOutputFormat(outFormat);
         q.setConstraints(constraints);
-        q.setStarterCode(starter);
+        q.setStarterCode(CLEAN_JAVA_STARTER);
         q.setTimeLimitMs(2000);
         q.setMemoryLimitMb(128);
         q.setMaxScore(10);
@@ -1393,7 +1547,7 @@ public class Solution {
         q.setDifficulty("INTERMEDIATE");
         q.setTitle(title);
         q.setDescription(desc);
-        q.setStarterCode("-- Write your SELECT query here\n" + refQuery);
+        q.setStarterCode("-- Write your SELECT query here\n");
         q.setMaxScore(10);
         SqlDataset ds = new SqlDataset(q, schemaDesc, ddl, seed, refQuery, true, "[]");
         q.setSqlDataset(ds);
