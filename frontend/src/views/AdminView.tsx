@@ -18,6 +18,8 @@ import {
   Volume2,
   Sparkles,
   Search,
+  RotateCw,
+  AlertCircle,
 } from 'lucide-react';
 
 export const AdminView: React.FC = () => {
@@ -60,31 +62,53 @@ export const AdminView: React.FC = () => {
   const [sqlSeedData, setSqlSeedData] = useState('');
   const [sqlRefQuery, setSqlRefQuery] = useState('');
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadData();
-    }
-  }, [isAuthenticated, activeTab]);
+  // Live Refresh & Search State
+  const [lastRefreshedAt, setLastRefreshedAt] = useState<Date>(new Date());
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(true);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [errorBanner, setErrorBanner] = useState<string>('');
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (silent = false) => {
+    if (!silent) setLoading(true);
+    setErrorBanner('');
     try {
       if (activeTab === 'attempts') {
         const data = await ApiClient.adminGetAttempts();
         setAttempts(data);
+        setLastRefreshedAt(new Date());
       } else if (activeTab === 'questions') {
         const data = await ApiClient.adminGetQuestions();
         setQuestions(data);
+        setLastRefreshedAt(new Date());
       } else if (activeTab === 'assessments') {
         const data = await ApiClient.adminGetAssessments();
         setAssessments(data);
+        setLastRefreshedAt(new Date());
       }
     } catch (err: any) {
-      console.error('Error loading data', err);
+      console.error('Error loading admin data', err);
+      if (err.message === 'AUTH_EXPIRED') {
+        setIsAuthenticated(false);
+        setLoginError('Your admin session expired or credentials changed. Please log in again with the updated password.');
+      } else {
+        setErrorBanner(err.message || 'Failed to refresh data. Please check connection or log in again.');
+      }
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    loadData(false);
+
+    if (autoRefresh && activeTab === 'attempts') {
+      const timer = setInterval(() => {
+        loadData(true);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [isAuthenticated, activeTab, autoRefresh]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -287,20 +311,92 @@ export const AdminView: React.FC = () => {
         {/* Tab 1: Attempts */}
         {activeTab === 'attempts' && (
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-bold text-white">Candidate Attempts & Submissions</h2>
-                <p className="text-xs text-slate-400">Monitor live and completed candidate evaluation attempts</p>
+            {errorBanner && (
+              <div className="p-3 bg-rose-950/80 border border-rose-800 rounded-lg flex items-center justify-between text-xs text-rose-300">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="w-4 h-4 text-rose-400" />
+                  <span>{errorBanner}</span>
+                </div>
+                <button
+                  onClick={() => loadData(false)}
+                  className="underline hover:text-white font-semibold"
+                >
+                  Retry
+                </button>
               </div>
-              <a
-                href="/api/admin/export/csv"
-                target="_blank"
-                rel="noreferrer"
-                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 flex items-center space-x-1.5 transition-colors"
-              >
-                <Download className="w-4 h-4 text-blue-400" />
-                <span>Export CSV</span>
-              </a>
+            )}
+
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center space-x-3">
+                  <h2 className="text-lg font-bold text-white">Candidate Attempts & Submissions</h2>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-950 text-blue-400 border border-blue-800">
+                    {attempts.length} Total
+                  </span>
+                </div>
+                <div className="flex items-center space-x-2 text-xs text-slate-400 mt-1">
+                  <span className="flex items-center space-x-1.5">
+                    <span className={`w-2 h-2 rounded-full ${autoRefresh ? 'bg-emerald-500 animate-pulse' : 'bg-slate-600'}`} />
+                    <span>{autoRefresh ? 'Live updates active (5s)' : 'Live updates paused'}</span>
+                  </span>
+                  <span>•</span>
+                  <span>Last synced: {lastRefreshedAt.toLocaleTimeString()}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2.5">
+                <button
+                  onClick={() => setAutoRefresh(!autoRefresh)}
+                  className={`px-3 py-2 text-xs font-semibold rounded-lg border transition-colors ${
+                    autoRefresh
+                      ? 'bg-emerald-950/60 border-emerald-700 text-emerald-300 hover:bg-emerald-900/60'
+                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Toggle 5-second automatic polling"
+                >
+                  Auto-sync: {autoRefresh ? 'ON' : 'OFF'}
+                </button>
+
+                <button
+                  onClick={() => loadData(false)}
+                  disabled={loading}
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 flex items-center space-x-1.5 transition-colors disabled:opacity-50"
+                  title="Force refresh candidate attempts"
+                >
+                  <RotateCw className={`w-4 h-4 text-blue-400 ${loading ? 'animate-spin' : ''}`} />
+                  <span>Refresh</span>
+                </button>
+
+                <a
+                  href="/api/admin/export/csv"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 flex items-center space-x-1.5 transition-colors"
+                >
+                  <Download className="w-4 h-4 text-blue-400" />
+                  <span>Export CSV</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Search Input Filter */}
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input
+                type="text"
+                placeholder="Search candidate name, email, test code, or status..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 bg-slate-900 border border-slate-800 rounded-lg text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs"
+                >
+                  Clear
+                </button>
+              )}
             </div>
 
             <div className="overflow-x-auto rounded-xl border border-slate-800 bg-slate-900 shadow-xl">
@@ -320,14 +416,40 @@ export const AdminView: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800 text-slate-300">
-                  {attempts.length === 0 ? (
+                  {attempts
+                    .filter((a) => {
+                      if (!searchQuery.trim()) return true;
+                      const q = searchQuery.toLowerCase();
+                      return (
+                        (a.candidateName && a.candidateName.toLowerCase().includes(q)) ||
+                        (a.candidateEmail && a.candidateEmail.toLowerCase().includes(q)) ||
+                        (a.testCode && a.testCode.toLowerCase().includes(q)) ||
+                        (a.status && a.status.toLowerCase().includes(q)) ||
+                        (a.attemptId && a.attemptId.toString().includes(q))
+                      );
+                    })
+                    .length === 0 ? (
                     <tr>
                       <td colSpan={10} className="px-4 py-8 text-center text-slate-500">
-                        No candidate attempts recorded yet.
+                        {attempts.length === 0
+                          ? 'No candidate attempts recorded yet.'
+                          : 'No matching candidate attempts found for query.'}
                       </td>
                     </tr>
                   ) : (
-                    attempts.map((a) => (
+                    attempts
+                      .filter((a) => {
+                        if (!searchQuery.trim()) return true;
+                        const q = searchQuery.toLowerCase();
+                        return (
+                          (a.candidateName && a.candidateName.toLowerCase().includes(q)) ||
+                          (a.candidateEmail && a.candidateEmail.toLowerCase().includes(q)) ||
+                          (a.testCode && a.testCode.toLowerCase().includes(q)) ||
+                          (a.status && a.status.toLowerCase().includes(q)) ||
+                          (a.attemptId && a.attemptId.toString().includes(q))
+                        );
+                      })
+                      .map((a) => (
                       <tr key={a.attemptId} className="hover:bg-slate-800/40">
                         <td className="px-4 py-3 font-mono text-slate-400">#{a.attemptId}</td>
                         <td className="px-4 py-3">

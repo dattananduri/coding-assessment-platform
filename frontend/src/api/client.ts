@@ -193,11 +193,21 @@ export class ApiClient {
     return data.token;
   }
 
+  private static checkAdminAuth(res: Response, defaultMessage: string): void {
+    if (!res.ok) {
+      if (res.status === 401 || res.status === 403) {
+        localStorage.removeItem('admin_token');
+        throw new Error('AUTH_EXPIRED');
+      }
+      throw new Error(defaultMessage);
+    }
+  }
+
   static async adminGetAssessments(): Promise<any[]> {
     const res = await fetch(`${API_BASE}/admin/assessments`, {
       headers: this.getHeaders(),
     });
-    if (!res.ok) throw new Error('Failed to fetch assessments.');
+    this.checkAdminAuth(res, 'Failed to fetch assessments.');
     return res.json();
   }
 
@@ -207,14 +217,14 @@ export class ApiClient {
       headers: this.getHeaders(),
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Failed to create assessment.');
+    this.checkAdminAuth(res, 'Failed to create assessment.');
     return res.json();
   }
 
   static async adminGetQuestions(category?: string): Promise<any[]> {
     const url = category ? `${API_BASE}/admin/questions?category=${category}` : `${API_BASE}/admin/questions`;
     const res = await fetch(url, { headers: this.getHeaders() });
-    if (!res.ok) throw new Error('Failed to fetch questions.');
+    this.checkAdminAuth(res, 'Failed to fetch questions.');
     return res.json();
   }
 
@@ -224,7 +234,7 @@ export class ApiClient {
       headers: this.getHeaders(),
       body: JSON.stringify(data),
     });
-    if (!res.ok) throw new Error('Failed to create question.');
+    this.checkAdminAuth(res, 'Failed to create question.');
     return res.json();
   }
 
@@ -233,14 +243,14 @@ export class ApiClient {
       method: 'DELETE',
       headers: this.getHeaders(),
     });
-    if (!res.ok) throw new Error('Failed to delete question.');
+    this.checkAdminAuth(res, 'Failed to delete question.');
   }
 
   static async adminGetAttempts(): Promise<any[]> {
     const res = await fetch(`${API_BASE}/admin/attempts`, {
       headers: this.getHeaders(),
     });
-    if (!res.ok) throw new Error('Failed to fetch candidate attempts.');
+    this.checkAdminAuth(res, 'Failed to fetch candidate attempts.');
     return res.json();
   }
 
@@ -248,7 +258,7 @@ export class ApiClient {
     const res = await fetch(`${API_BASE}/admin/attempts/${attemptId}`, {
       headers: this.getHeaders(),
     });
-    if (!res.ok) throw new Error('Failed to fetch attempt detail.');
+    this.checkAdminAuth(res, 'Failed to fetch attempt detail.');
     return res.json();
   }
 }
