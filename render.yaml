@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: coding-assessment-platform
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    envVars:
+      - key: APP_ADMIN_USERNAME
+        value: admin
+      - key: APP_ADMIN_PASSWORD
+        value: Admin@TechExam2026!#
+      - key: APP_JWT_SECRET
+        generateValue: true

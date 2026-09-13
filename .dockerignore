@@ -1,0 +1,11 @@
+.git
+.gitignore
+.env
+**/target
+**/node_modules
+**/dist
+backend/data
+frontend/dist
+.DS_Store
+Thumbs.db
+*.log

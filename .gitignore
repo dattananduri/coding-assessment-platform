@@ -1,0 +1,30 @@
+# Build outputs
+target/
+**/target/
+dist/
+**/dist/
+node_modules/
+**/node_modules/
+
+# Data & Storage
+backend/data/
+**/data/recordings/
+*.db
+*.mv.db
+*.trace.db
+
+# Logs
+*.log
+logs/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath
+
+# OS files
+.DS_Store
+Thumbs.db
